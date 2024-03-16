@@ -6,6 +6,11 @@ In short: it scans all the text files in specified directory and puts their cont
 
 By default provides predefined prompt which can be replaced using `-p` option.
 
+## Ignored files / paths
+
+* Files/directories starting with `.`
+* Binary files
+
 ## Flags
 
 * `-o, --output` - Output file path. When not specified, output will be printed to `stdout`.
