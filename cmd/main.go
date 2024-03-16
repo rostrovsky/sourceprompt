@@ -12,10 +12,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const DEFAULT_PROMPT = `# LLM Prompt`
+
 var (
 	rFlag bool
 	vFlag bool
 	oFlag string
+	pFlag string
 )
 
 var rootCmd = &cobra.Command{
@@ -31,10 +34,16 @@ func init() {
 	rootCmd.Flags().BoolVarP(&rFlag, "raw", "r", false, "Return just file contents without LLM prompt")
 	rootCmd.Flags().BoolVarP(&vFlag, "verbose", "v", false, "Enable verbose output")
 	rootCmd.Flags().StringVarP(&oFlag, "output", "o", "", "Output file path")
+	rootCmd.Flags().StringVarP(&pFlag, "prompt", "p", "", "Prompt file path")
 
 	programLevel = new(slog.LevelVar)
 	h := slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: programLevel})
 	slog.SetDefault(slog.New(h))
+}
+
+func logErrAndExit(err error) {
+	slog.Error(err.Error())
+	os.Exit(1)
 }
 
 func run(cmd *cobra.Command, args []string) {
@@ -51,13 +60,22 @@ func run(cmd *cobra.Command, args []string) {
 	if rFlag {
 		slog.Debug("Raw mode - skipping LLM prompt")
 	} else {
-		sb.WriteString("This is the LLM prompt blablabla\n\n")
+		if pFlag != "" {
+			slog.Debug("Using custom prompt", "prompt file", pFlag)
+			promptContent, err := os.ReadFile(pFlag)
+			if err != nil {
+				logErrAndExit(err)
+			}
+			sb.Write(promptContent)
+			sb.WriteString("\n\n")
+		} else {
+			sb.WriteString(DEFAULT_PROMPT + "\n\n")
+		}
 	}
 
 	err := processPath(path, &sb)
 	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
+		logErrAndExit(err)
 	}
 
 	slog.Debug("Processing done")
@@ -66,8 +84,7 @@ func run(cmd *cobra.Command, args []string) {
 		slog.Debug("Saving", "output file", oFlag)
 		err := writeToFile(oFlag, []byte(sb.String()))
 		if err != nil {
-			slog.Error(err.Error())
-			os.Exit(1)
+			logErrAndExit(err)
 		}
 		slog.Debug("File saved sucessfully")
 	} else {
@@ -119,7 +136,7 @@ func processPath(path string, stringBuilder *strings.Builder) error {
 			return err
 		}
 
-		stringBuilder.WriteString("#### " + filePath + "\n\n")
+		stringBuilder.WriteString("`" + filePath + "`\n\n")
 		stringBuilder.WriteString("```" + "\n")
 		stringBuilder.Write(content)
 		stringBuilder.WriteString("```" + "\n\n")
