@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -45,8 +46,6 @@ func run(cmd *cobra.Command, args []string) {
 
 	path := args[0]
 
-	slog.Debug("Processing", "path", path)
-
 	if !isGitURL(path) && !isFilePath(path) {
 		logErrAndExit(fmt.Errorf("argument must be a valid git URL or file path"))
 	}
@@ -69,7 +68,29 @@ func run(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	err := processPath(path, &sb)
+	prefixToRemove := ""
+
+	if isGitURL(path) {
+		slog.Debug("Processing git URL")
+
+		tempDir, err := os.MkdirTemp("", "sourceprompt-git-clone-")
+		if err != nil {
+			logErrAndExit(fmt.Errorf("failed to create temporary directory: %v", err))
+		}
+		defer os.RemoveAll(tempDir)
+
+		cmd := exec.Command("git", "clone", path, tempDir)
+		err = cmd.Run()
+		if err != nil {
+			logErrAndExit(fmt.Errorf("failed to clone Git repository: %v", err))
+		}
+
+		slog.Debug("Repository cloned succesfully", "tempDir", tempDir)
+		path = tempDir
+		prefixToRemove = tempDir
+	}
+
+	err := processPath(path, prefixToRemove, &sb)
 	if err != nil {
 		logErrAndExit(err)
 	}

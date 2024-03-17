@@ -62,7 +62,7 @@ func isBinary(filename string) (bool, error) {
 	return !utf8.ValidString(string(buf)), nil
 }
 
-func processPath(path string, stringBuilder *strings.Builder) error {
+func processPath(path string, prefixToRemove string, stringBuilder *strings.Builder) error {
 	return filepath.Walk(path, func(filePath string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -88,6 +88,10 @@ func processPath(path string, stringBuilder *strings.Builder) error {
 		content, err := os.ReadFile(filePath)
 		if err != nil {
 			return err
+		}
+
+		if prefixToRemove != "" {
+			filePath = strings.TrimPrefix(filePath, prefixToRemove)
 		}
 
 		stringBuilder.WriteString("`" + filePath + "`\n\n")
