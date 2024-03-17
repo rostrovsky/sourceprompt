@@ -22,27 +22,9 @@ func isURL(str string) bool {
 	return err == nil && u.Scheme != "" && u.Host != ""
 }
 
-func isGitURL(url string) bool {
-	if !isURL(url) {
-		return false
-	}
-
-	resp, err := http.Get(url)
-	if err != nil {
-		return false
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return false
-	}
-
-	contentType := resp.Header.Get("Content-Type")
-	return contentType == "application/x-git-upload-pack-advertisement"
-}
-
 func isFilePath(str string) bool {
-	_, err := filepath.Abs(str)
+	x, err := filepath.Abs(str)
+	slog.Debug(x)
 	return err == nil
 }
 
@@ -69,7 +51,10 @@ func processPath(path string, prefixToRemove string, stringBuilder *strings.Buil
 		}
 
 		// skip directories and hidden files
-		if info.IsDir() || strings.HasPrefix(filePath, ".") {
+		trimmedPath := strings.TrimPrefix(filePath, prefixToRemove)
+		trimmedPath = strings.TrimLeft(trimmedPath, "/")
+		trimmedPath = strings.TrimLeft(trimmedPath, "\\")
+		if info.IsDir() || strings.HasPrefix(trimmedPath, ".") {
 			return nil
 		}
 
@@ -91,7 +76,7 @@ func processPath(path string, prefixToRemove string, stringBuilder *strings.Buil
 		}
 
 		if prefixToRemove != "" {
-			filePath = strings.TrimPrefix(filePath, prefixToRemove)
+			filePath = trimmedPath
 		}
 
 		stringBuilder.WriteString("`" + filePath + "`\n\n")

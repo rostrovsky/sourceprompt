@@ -21,7 +21,7 @@ var (
 
 var rootCmd = &cobra.Command{
 	Use:   "sourceprompt [path]",
-	Short: "Converts your codebase into LLM prompt ",
+	Short: "Converts your codebase into LLM prompt.\nAccepts local directory path or git repo URL as an argument.",
 	Args:  cobra.ExactArgs(1),
 	Run:   run,
 }
@@ -32,7 +32,7 @@ func init() {
 	rootCmd.Flags().BoolVarP(&rFlag, "raw", "r", false, "Return just file contents without LLM prompt")
 	rootCmd.Flags().BoolVarP(&vFlag, "verbose", "v", false, "Enable verbose output")
 	rootCmd.Flags().StringVarP(&oFlag, "output", "o", "", "Output file path")
-	rootCmd.Flags().StringVarP(&pFlag, "prompt", "p", "", "Prompt file path")
+	rootCmd.Flags().StringVarP(&pFlag, "prompt", "p", "", "Prompt file path or URL")
 
 	programLevel = new(slog.LevelVar)
 	h := slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: programLevel})
@@ -46,7 +46,7 @@ func run(cmd *cobra.Command, args []string) {
 
 	path := args[0]
 
-	if !isGitURL(path) && !isFilePath(path) {
+	if !isURL(path) && !isFilePath(path) {
 		logErrAndExit(fmt.Errorf("argument must be a valid git URL or file path"))
 	}
 
@@ -70,14 +70,17 @@ func run(cmd *cobra.Command, args []string) {
 
 	prefixToRemove := ""
 
-	if isGitURL(path) {
-		slog.Debug("Processing git URL")
+	if isURL(path) {
+		slog.Debug("Cloning using git", "url", path)
 
 		tempDir, err := os.MkdirTemp("", "sourceprompt-git-clone-")
 		if err != nil {
 			logErrAndExit(fmt.Errorf("failed to create temporary directory: %v", err))
 		}
-		defer os.RemoveAll(tempDir)
+		defer func() {
+			os.RemoveAll(tempDir)
+			slog.Debug("Temporary directory removed", "tempDir", tempDir)
+		}()
 
 		cmd := exec.Command("git", "clone", path, tempDir)
 		err = cmd.Run()
