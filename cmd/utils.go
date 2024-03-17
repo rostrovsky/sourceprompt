@@ -128,6 +128,7 @@ func writeToFile(filePath string, content []byte) error {
 
 func getCustomPromptContent(promptFilepathOrUrl string) ([]byte, error) {
 	if isURL(promptFilepathOrUrl) {
+		slog.Debug("Downloading prompt file", "url", promptFilepathOrUrl)
 		resp, err := http.Get(promptFilepathOrUrl)
 		if err != nil {
 			return nil, err
@@ -145,6 +146,7 @@ func getCustomPromptContent(promptFilepathOrUrl string) ([]byte, error) {
 		return content, nil
 	}
 
+	slog.Debug("Reading prompt file", "path", promptFilepathOrUrl)
 	content, err := os.ReadFile(promptFilepathOrUrl)
 	if err != nil {
 		return nil, err

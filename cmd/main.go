@@ -57,7 +57,7 @@ func run(cmd *cobra.Command, args []string) {
 		slog.Debug("Raw mode - skipping LLM prompt")
 	} else {
 		if pFlag != "" {
-			slog.Debug("Using custom prompt", "prompt file", pFlag)
+			slog.Debug("Using custom prompt")
 			promptContent, err := getCustomPromptContent(pFlag)
 			if err != nil {
 				logErrAndExit(err)
