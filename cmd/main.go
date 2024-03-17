@@ -47,6 +47,10 @@ func run(cmd *cobra.Command, args []string) {
 
 	slog.Debug("Processing", "path", path)
 
+	if !isGitURL(path) && !isFilePath(path) {
+		logErrAndExit(fmt.Errorf("argument must be a valid git URL or file path"))
+	}
+
 	sb := strings.Builder{}
 
 	if rFlag {
@@ -54,7 +58,7 @@ func run(cmd *cobra.Command, args []string) {
 	} else {
 		if pFlag != "" {
 			slog.Debug("Using custom prompt", "prompt file", pFlag)
-			promptContent, err := os.ReadFile(pFlag)
+			promptContent, err := getCustomPromptContent(pFlag)
 			if err != nil {
 				logErrAndExit(err)
 			}

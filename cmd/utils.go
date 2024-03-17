@@ -2,7 +2,9 @@ package main
 
 import (
 	"bufio"
+	"io"
 	"log/slog"
+	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -18,6 +20,25 @@ func logErrAndExit(err error) {
 func isURL(str string) bool {
 	u, err := url.Parse(str)
 	return err == nil && u.Scheme != "" && u.Host != ""
+}
+
+func isGitURL(url string) bool {
+	if !isURL(url) {
+		return false
+	}
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return false
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return false
+	}
+
+	contentType := resp.Header.Get("Content-Type")
+	return contentType == "application/x-git-upload-pack-advertisement"
 }
 
 func isFilePath(str string) bool {
@@ -103,4 +124,31 @@ func writeToFile(filePath string, content []byte) error {
 	}
 
 	return nil
+}
+
+func getCustomPromptContent(promptFilepathOrUrl string) ([]byte, error) {
+	if isURL(promptFilepathOrUrl) {
+		resp, err := http.Get(promptFilepathOrUrl)
+		if err != nil {
+			return nil, err
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			return nil, err
+		}
+
+		content, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+		return content, nil
+	}
+
+	content, err := os.ReadFile(promptFilepathOrUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	return content, nil
 }
