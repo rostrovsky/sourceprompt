@@ -1,13 +1,10 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"log/slog"
 	"os"
-	"path/filepath"
 	"strings"
-	"unicode/utf8"
 
 	"github.com/spf13/cobra"
 )
@@ -39,11 +36,6 @@ func init() {
 	programLevel = new(slog.LevelVar)
 	h := slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: programLevel})
 	slog.SetDefault(slog.New(h))
-}
-
-func logErrAndExit(err error) {
-	slog.Error(err.Error())
-	os.Exit(1)
 }
 
 func run(cmd *cobra.Command, args []string) {
@@ -90,86 +82,6 @@ func run(cmd *cobra.Command, args []string) {
 	} else {
 		fmt.Println(sb.String())
 	}
-}
-
-func isBinary(filename string) (bool, error) {
-	f, err := os.Open(filename)
-	if err != nil {
-		return false, err
-	}
-	defer f.Close()
-
-	buf := make([]byte, 1024)
-	_, err = f.Read(buf)
-	if err != nil {
-		return false, err
-	}
-
-	return !utf8.ValidString(string(buf)), nil
-}
-
-func processPath(path string, stringBuilder *strings.Builder) error {
-	return filepath.Walk(path, func(filePath string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		// skip directories and hidden files
-		if info.IsDir() || strings.HasPrefix(filePath, ".") {
-			return nil
-		}
-
-		// skip binary files
-		isBinary, err := isBinary(filePath)
-		if err != nil {
-			return err
-		}
-
-		if isBinary {
-			return nil
-		}
-
-		slog.Debug("Processing", "path", filePath)
-
-		content, err := os.ReadFile(filePath)
-		if err != nil {
-			return err
-		}
-
-		stringBuilder.WriteString("`" + filePath + "`\n\n")
-		stringBuilder.WriteString("```" + "\n")
-		stringBuilder.Write(content)
-		stringBuilder.WriteString("```" + "\n\n")
-
-		return nil
-	})
-}
-
-func writeToFile(filePath string, content []byte) error {
-	dir := filepath.Dir(filePath)
-	err := os.MkdirAll(dir, os.ModePerm)
-	if err != nil {
-		return err
-	}
-
-	file, err := os.Create(filePath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	writer := bufio.NewWriter(file)
-	_, err = writer.Write(content)
-	if err != nil {
-		return err
-	}
-
-	err = writer.Flush()
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func main() {
