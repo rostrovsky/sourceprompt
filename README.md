@@ -2,9 +2,9 @@
 
 Converts your codebase into prompt which you can feed into LLM.
 
-In short: it scans all the text files in specified directory / git repostiory and puts their contents (along with their path) into structured markdown document.
+In short: it scans all the text files in specified directory / git repostiory and puts their content (along with their path) into structured markdown document.
 
-By default provides predefined prompt which can be replaced using `-p` option.
+By default it provides predefined prompt which can be replaced using `-p` option.
 
 ## Ignored files / paths
 
@@ -14,7 +14,7 @@ By default provides predefined prompt which can be replaced using `-p` option.
 ## Flags
 
 * `-o, --output` - Output file path. When not specified, output will be printed to `stdout`.
-* `-p, --prompt` - Prompt file path or URL. Allows specifying custom prompt which will be put at the beginning of the output. **If not specified, default prompt will be used.**
+* `-p, --prompt` - Prompt file path or URL. Allows specifying custom prompt which will be put at the beginning of the output. **If not specified, [default prompt](#default-prompt) will be used.**
 * `-r, --raw` - Removes prompt from the output.
 * `-v, --verbose` - Prints debug info when enabled.
 
