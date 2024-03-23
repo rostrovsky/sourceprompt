@@ -1,0 +1,109 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - "*"
+    tags:
+      - "v*"
+
+env:
+  LINUX_AMD_ARCHIVE: sourceprompt-${{ github.ref_name }}-linux-amd64.tar.gz
+  LINUX_ARM_ARCHIVE: sourceprompt-${{ github.ref_name }}-linux-arm64.tar.gz
+  WIN_AMD_ARCHIVE: sourceprompt-${{ github.ref_name }}-win-amd64.zip
+  MAC_ARM_ARCHIVE: sourceprompt-${{ github.ref_name }}-mac-arm64.tar.gz
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.22.0
+
+      - name: Build Binaries
+        id: build
+        run: |
+          echo "Building Linux amd64 binary"
+          GOOS=linux GOARCH=amd64 go build -o sourceprompt
+          tar -czvf ${LINUX_AMD_ARCHIVE} sourceprompt
+          rm -v sourceprompt
+
+          echo "Building Linux arm64 binary"
+          GOOS=linux GOARCH=arm64 go build -o sourceprompt
+          tar -czvf ${LINUX_ARM_ARCHIVE} sourceprompt
+          rm -v sourceprompt
+
+          echo "Building Windows amd64 binary"
+          GOOS=windows GOARCH=amd64 go build -o sourceprompt.exe
+          zip ${WIN_AMD_ARCHIVE} sourceprompt.exe
+          rm -v sourceprompt.exe
+
+          echo "Building Mac arm64 binary"
+          GOOS=darwin GOARCH=arm64 go build -o sourceprompt
+          tar -czvf ${MAC_ARM_ARCHIVE} sourceprompt
+          rm -v sourceprompt
+
+          ls -lah
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Download binaries from artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: binaries
+
+      - name: Create Release
+        id: create_release
+        uses: gh-actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: "${{ github.ref_name }}"
+          release_name: "sourceprompt ${{ github.ref_name }}"
+          draft: false
+          prerelease: false
+
+      - name: Upload Linux amd64 Archive
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ env.LINUX_AMD_ARCHIVE }}
+          asset_name: ${{ env.LINUX_AMD_ARCHIVE }}
+          asset_content_type: application/octet-stream
+
+      - name: Upload Linux arm64 Archive
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ env.LINUX_ARM_ARCHIVE }}
+          asset_name: ${{ env.LINUX_ARM_ARCHIVE }}
+          asset_content_type: application/octet-stream
+
+      - name: Upload Windows amd64 Archive
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ env.WIN_AMD_ARCHIVE }}
+          asset_name: ${{ env.WIN_AMD_ARCHIVE }}
+          asset_content_type: application/octet-stream
+      
+      - name: Upload Mac arm64 Archive
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ env.MAC_ARM_ARCHIVE }}
+          asset_name: ${{ env.MAC_ARM_ARCHIVE }}
+          asset_content_type: application/octet-stream
