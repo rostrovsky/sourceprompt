@@ -144,7 +144,7 @@ func run(cmd *cobra.Command, args []string) {
 	slog.Debug("Processing done")
 
 	if oFlag != "" {
-		slog.Debug("Saving", "output file", oFlag)
+		slog.Debug("Saving output", "file", oFlag)
 		err := writeToFile(oFlag, []byte(sb.String()))
 		if err != nil {
 			logErrAndExit(err)

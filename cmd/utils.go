@@ -45,6 +45,10 @@ func isBinary(filename string) (bool, error) {
 	return !utf8.ValidString(string(buf)), nil
 }
 
+func isMarkdown(filename string) bool {
+	return strings.HasSuffix(strings.ToLower(filename), ".md")
+}
+
 func processPath(path string, prefixToRemove string, include *regexp.Regexp, exclude *regexp.Regexp, stringBuilder *strings.Builder) error {
 	return filepath.Walk(path, func(filePath string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -92,10 +96,16 @@ func processPath(path string, prefixToRemove string, include *regexp.Regexp, exc
 			filePath = trimmedPath
 		}
 
+		fences := "```"
+
+		if isMarkdown(filePath) {
+			fences = "````"
+		}
+
 		stringBuilder.WriteString("`" + filePath + "`\n\n")
-		stringBuilder.WriteString("```" + "\n")
+		stringBuilder.WriteString(fences + "\n")
 		stringBuilder.Write(content)
-		stringBuilder.WriteString("```" + "\n\n")
+		stringBuilder.WriteString(fences + "\n\n")
 
 		return nil
 	})
