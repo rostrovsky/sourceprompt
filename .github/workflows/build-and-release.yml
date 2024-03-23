@@ -31,22 +31,22 @@ jobs:
 
           echo "ref -> $GITHUB_REF"
 
-          echo "Building Linux amd64 binary"
+          echo "----- Building Linux amd64 binary"
           GOOS=linux GOARCH=amd64 go build -o sourceprompt ./...
           tar -czvf ${LINUX_AMD_ARCHIVE} sourceprompt
           rm -v sourceprompt
 
-          echo "Building Linux arm64 binary"
+          echo "----- Building Linux arm64 binary"
           GOOS=linux GOARCH=arm64 go build -o sourceprompt ./...
           tar -czvf ${LINUX_ARM_ARCHIVE} sourceprompt
           rm -v sourceprompt
 
-          echo "Building Windows amd64 binary"
-          GOOS=windows GOARCH=amd64 go build -o sourceprompt ./....exe
+          echo "----- Building Windows amd64 binary
+          GOOS=windows GOARCH=amd64 go build -o sourceprompt.exe ./...
           zip ${WIN_AMD_ARCHIVE} sourceprompt.exe
           rm -v sourceprompt.exe
 
-          echo "Building Mac arm64 binary"
+          echo "----- Building Mac arm64 binary"
           GOOS=darwin GOARCH=arm64 go build -o sourceprompt ./...
           tar -czvf ${MAC_ARM_ARCHIVE} sourceprompt
           rm -v sourceprompt
