@@ -6,6 +6,14 @@ In short: it scans all the text files in specified directory / git repostiory an
 
 By default it provides predefined prompt which can be replaced using `-p` option.
 
+## Installation
+
+Download binary from releases or install using:
+
+```bash
+go install github.com/rostrovsky/sourceprompt@latest
+```
+
 ## Ignored files / paths
 
 * Files/directories starting with `.`
