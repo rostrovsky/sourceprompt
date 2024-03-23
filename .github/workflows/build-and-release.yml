@@ -28,6 +28,10 @@ jobs:
       - name: Build Binaries
         id: build
         run: |
+
+          pwd
+          ls -lah
+          
           echo "Building Linux amd64 binary"
           GOOS=linux GOARCH=amd64 go build -o sourceprompt
           tar -czvf ${LINUX_AMD_ARCHIVE} sourceprompt
