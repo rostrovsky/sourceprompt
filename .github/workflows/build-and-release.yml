@@ -41,7 +41,7 @@ jobs:
           tar -czvf ${LINUX_ARM_ARCHIVE} sourceprompt
           rm -v sourceprompt
 
-          echo "----- Building Windows amd64 binary
+          echo "----- Building Windows amd64 binary"
           GOOS=windows GOARCH=amd64 go build -o sourceprompt.exe ./...
           zip ${WIN_AMD_ARCHIVE} sourceprompt.exe
           rm -v sourceprompt.exe
