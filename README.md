@@ -13,6 +13,8 @@ By default it provides predefined prompt which can be replaced using `-p` option
 
 ## Flags
 
+* `-i, --include` - Regex pattern of paths that should be included.
+* `-e, --exclude` - Regex pattern of paths that should be excluded.
 * `-o, --output` - Output file path. When not specified, output will be printed to `stdout`.
 * `-p, --prompt` - Prompt file path or URL. Allows specifying custom prompt which will be put at the beginning of the output. **If not specified, [default prompt](#default-prompt) will be used.**
 * `-r, --raw` - Removes prompt from the output.
@@ -39,6 +41,12 @@ sourceprompt /path/to/dir -o out.md
 
 # output to file with custom prompt
 sourceprompt /path/to/dir -o out.md -p my_prompt.txt
+
+# include only src/ files
+sourceprompt /path/to/dir -o out.md -i '^src'
+
+# exclude markdown files
+sourceprompt /path/to/dir -o out.md -i '\.md$'
 ```
 
 ## Default prompt

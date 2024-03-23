@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"unicode/utf8"
 )
@@ -44,7 +45,7 @@ func isBinary(filename string) (bool, error) {
 	return !utf8.ValidString(string(buf)), nil
 }
 
-func processPath(path string, prefixToRemove string, stringBuilder *strings.Builder) error {
+func processPath(path string, prefixToRemove string, include *regexp.Regexp, exclude *regexp.Regexp, stringBuilder *strings.Builder) error {
 	return filepath.Walk(path, func(filePath string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -55,6 +56,18 @@ func processPath(path string, prefixToRemove string, stringBuilder *strings.Buil
 		trimmedPath = strings.TrimLeft(trimmedPath, "/")
 		trimmedPath = strings.TrimLeft(trimmedPath, "\\")
 		if info.IsDir() || strings.HasPrefix(trimmedPath, ".") {
+			return nil
+		}
+
+		// skip files that don't match the include pattern
+		if include != nil && !include.MatchString(trimmedPath) {
+			slog.Debug("Skipping because of include pattern", "path", filePath)
+			return nil
+		}
+
+		// skip files that match the exclude pattern
+		if exclude != nil && exclude.MatchString(trimmedPath) {
+			slog.Debug("Skipping because of exclude pattern", "path", filePath)
 			return nil
 		}
 

@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -34,6 +35,8 @@ Your analysis should be thorough, insightful, and aimed at enabling AI agents to
 var (
 	rFlag bool
 	vFlag bool
+	eFlag string
+	iFlag string
 	oFlag string
 	pFlag string
 )
@@ -52,6 +55,8 @@ func init() {
 	rootCmd.Flags().BoolVarP(&vFlag, "verbose", "v", false, "Enable verbose output")
 	rootCmd.Flags().StringVarP(&oFlag, "output", "o", "", "Output file path")
 	rootCmd.Flags().StringVarP(&pFlag, "prompt", "p", "", "Prompt file path or URL")
+	rootCmd.Flags().StringVarP(&eFlag, "exclude", "e", "", "Regular expression of filename patterns to exclude")
+	rootCmd.Flags().StringVarP(&iFlag, "include", "i", "", "Regular expression of filename patterns to include")
 
 	programLevel = new(slog.LevelVar)
 	h := slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: programLevel})
@@ -112,7 +117,26 @@ func run(cmd *cobra.Command, args []string) {
 		prefixToRemove = tempDir
 	}
 
-	err := processPath(path, prefixToRemove, &sb)
+	var includeRe *regexp.Regexp
+	var excludeRe *regexp.Regexp
+
+	if iFlag != "" {
+		re, err := regexp.Compile(iFlag)
+		if err != nil {
+			logErrAndExit(err)
+		}
+		includeRe = re
+	}
+
+	if eFlag != "" {
+		re, err := regexp.Compile(eFlag)
+		if err != nil {
+			logErrAndExit(err)
+		}
+		excludeRe = re
+	}
+
+	err := processPath(path, prefixToRemove, includeRe, excludeRe, &sb)
 	if err != nil {
 		logErrAndExit(err)
 	}
