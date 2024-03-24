@@ -52,23 +52,9 @@ jobs:
           rm -v sourceprompt
 
           ls -lah
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    if: startsWith(github.ref, 'refs/tags/')
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Download binaries from artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: binaries
-
-      - name: Create Release
+      
+      - name: Create Release and Upload Artifacts
+        if: startsWith(github.ref, 'refs/tags/')
         id: create_release
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
