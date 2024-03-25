@@ -54,7 +54,7 @@ sourceprompt /path/to/dir -o out.md -p my_prompt.txt
 sourceprompt /path/to/dir -o out.md -i '^src'
 
 # exclude markdown files
-sourceprompt /path/to/dir -o out.md -i '\.md$'
+sourceprompt /path/to/dir -o out.md -e '\.md$'
 ```
 
 ## Default prompt
