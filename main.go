@@ -93,7 +93,7 @@ func run(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	prefixToRemove := ""
+	prefixToRemove := path
 
 	if u.IsURL(path) {
 		slog.Debug("Cloning using git", "url", path)

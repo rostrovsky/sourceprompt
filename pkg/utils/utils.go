@@ -49,8 +49,94 @@ func IsMarkdown(filename string) bool {
 	return strings.HasSuffix(strings.ToLower(filename), ".md")
 }
 
+func DetectLanguage(path string) string {
+    filename := filepath.Base(path)   
+    ext := strings.ToLower(filepath.Ext(filename))
+    
+    switch ext {
+    case ".go", ".templ":
+        return "go"
+    case ".py":
+        return "python"
+    case ".js":
+        return "javascript"
+    case ".ts":
+        return "typescript"
+    case ".java":
+        return "java"
+    case ".c", ".h":
+        return "c"
+    case ".cpp", ".cxx", ".cc", ".hpp":
+        return "cpp"
+    case ".cs":
+        return "csharp"
+    case ".rb":
+        return "ruby"
+    case ".php":
+        return "php"
+    case ".swift":
+        return "swift"
+    case ".kt", ".kts":
+        return "kotlin"
+    case ".rs":
+        return "rust"
+    case ".html", ".htm", ".gohtml":
+        return "html"
+    case ".css":
+        return "css"
+    case ".sql":
+        return "sql"
+    case ".sh":
+        return "bash"
+    case ".pl":
+        return "perl"
+    case ".r":
+        return "r"
+    case ".m":
+        return "objectivec"  // This could also be MATLAB
+    case ".vb":
+        return "vbnet"
+    case ".scala":
+        return "scala"
+    case ".lua":
+        return "lua"
+    case ".groovy":
+        return "groovy"
+    case ".dart":
+        return "dart"
+    case ".md", ".markdown":
+        return "markdown"
+    case ".json":
+        return "json"
+    case ".xml":
+        return "xml"
+    case ".yaml", ".yml":
+        return "yaml"
+    case ".tex":
+        return "tex"
+    case ".dockerfile", ".df":
+        return "dockerfile"
+    case ".ps1":
+        return "powershell"
+    case ".scss":
+        return "scss"
+    case ".toml":
+        return "toml"
+    case ".zig":
+        return "zig"
+    case ".nim":
+        return "nim"
+    case ".hs":
+        return "haskell"
+    default:
+        return ""
+    }
+}
+
 func ProcessPath(path string, prefixToRemove string, include *regexp.Regexp, exclude *regexp.Regexp, stringBuilder *strings.Builder) error {
 	return filepath.Walk(path, func(filePath string, info os.FileInfo, err error) error {
+		slog.Debug("Processing", "path", filePath)
+
 		if err != nil {
 			return err
 		}
@@ -60,35 +146,37 @@ func ProcessPath(path string, prefixToRemove string, include *regexp.Regexp, exc
 		trimmedPath = strings.TrimLeft(trimmedPath, "/")
 		trimmedPath = strings.TrimLeft(trimmedPath, "\\")
 		if info.IsDir() || strings.HasPrefix(trimmedPath, ".") {
+			slog.Debug("Skipped: path is dir or starts with dot", "path", filePath, "trimmedPath", trimmedPath)
 			return nil
 		}
 
 		// skip files that don't match the include pattern
 		if include != nil && !include.MatchString(trimmedPath) {
-			slog.Debug("Skipping because of include pattern", "path", filePath)
+			slog.Debug("Skipped: doesn't match include pattern", "path", filePath, "trimmedPath", trimmedPath)
 			return nil
 		}
 
 		// skip files that match the exclude pattern
 		if exclude != nil && exclude.MatchString(trimmedPath) {
-			slog.Debug("Skipping because of exclude pattern", "path", filePath)
+			slog.Debug("Skipped: matches exclude pattern", "path", filePath, "trimmedPath", trimmedPath)
 			return nil
 		}
 
 		// skip binary files
 		isBinary, err := IsBinary(filePath)
 		if err != nil {
+			slog.Debug("Error: can't open file", "path", filePath, "trimmedPath", trimmedPath)
 			return err
 		}
 
 		if isBinary {
+			slog.Debug("Skipped: binary file", "path", filePath, "trimmedPath", trimmedPath)
 			return nil
 		}
 
-		slog.Debug("Processing", "path", filePath)
-
 		content, err := os.ReadFile(filePath)
 		if err != nil {
+			slog.Debug("Error: can't read file", "path", filePath, "trimmedPath", trimmedPath)
 			return err
 		}
 
@@ -102,9 +190,14 @@ func ProcessPath(path string, prefixToRemove string, include *regexp.Regexp, exc
 			fences = "````"
 		}
 
+		fences += DetectLanguage(filePath)
+
 		stringBuilder.WriteString("`" + filePath + "`\n\n")
 		stringBuilder.WriteString(fences + "\n")
 		stringBuilder.Write(content)
+		if content[len(content)-1] != '\n' {
+			stringBuilder.WriteString("\n")
+		}
 		stringBuilder.WriteString(fences + "\n\n")
 
 		return nil
