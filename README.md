@@ -4,7 +4,7 @@ Converts your codebase into prompt which you can feed into LLM.
 
 In short: it scans all the text files in specified directory / git repostiory and puts their content (along with their path) into structured markdown document.
 
-By default it provides predefined prompt which can be replaced using `-p` option.
+By default it provides predefined prompt which can be omitted using `-r` or replaced using `-p` options.
 
 ## Installation
 
