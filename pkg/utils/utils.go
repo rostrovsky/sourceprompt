@@ -142,7 +142,10 @@ func ProcessPath(path string, prefixToRemove string, include *regexp.Regexp, exc
 		}
 
 		// skip directories and hidden files
-		trimmedPath := strings.TrimPrefix(filePath, prefixToRemove)
+		trimmedPath := filePath
+		if prefixToRemove != "." {
+			trimmedPath = strings.TrimPrefix(filePath, prefixToRemove)
+		}
 		trimmedPath = strings.TrimLeft(trimmedPath, "/")
 		trimmedPath = strings.TrimLeft(trimmedPath, "\\")
 		if info.IsDir() || strings.HasPrefix(trimmedPath, ".") {
