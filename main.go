@@ -34,7 +34,7 @@ Your analysis should be thorough, insightful, and aimed at enabling AI agents to
 `
 
 const (
-	version = "1.0.2"
+	version = "1.0.3"
 )
 
 var (
