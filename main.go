@@ -33,6 +33,10 @@ Your analysis should be thorough, insightful, and aimed at enabling AI agents to
 
 `
 
+const (
+	version = "1.0.2"
+)
+
 var (
 	rFlag bool
 	vFlag bool
@@ -49,6 +53,14 @@ var rootCmd = &cobra.Command{
 	Run:   run,
 }
 
+var versionCmd = &cobra.Command{
+	Use:   "version",
+	Short: "Prints the version of sourceprompt",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Printf("sourceprompt version %s\n", version)
+	},
+}
+
 var programLevel *slog.LevelVar
 
 func init() {
@@ -58,6 +70,8 @@ func init() {
 	rootCmd.Flags().StringVarP(&pFlag, "prompt", "p", "", "Prompt file path or URL")
 	rootCmd.Flags().StringVarP(&eFlag, "exclude", "e", "", "Regular expression of filename patterns to exclude")
 	rootCmd.Flags().StringVarP(&iFlag, "include", "i", "", "Regular expression of filename patterns to include")
+
+	rootCmd.AddCommand(versionCmd)
 
 	programLevel = new(slog.LevelVar)
 	h := slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: programLevel})
