@@ -8,8 +8,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/spf13/cobra"
 	u "github.com/rostrovsky/sourceprompt/pkg/utils"
+	"github.com/spf13/cobra"
 )
 
 const DEFAULT_PROMPT = `You will be provided with a markdown text (under the "---" separator) containing the contents of a codebase. Each code snippet will be enclosed in code fences, along with the corresponding file name. Your task is to analyze the codebase and gain a comprehensive understanding of its structure, functionality, and key features.
@@ -34,7 +34,7 @@ Your analysis should be thorough, insightful, and aimed at enabling AI agents to
 `
 
 const (
-	version = "1.0.3"
+	version = "1.0.4"
 )
 
 var (
