@@ -21,8 +21,8 @@ go install github.com/rostrovsky/sourceprompt@latest
 
 ## Flags
 
-* `-i, --include` - Regex pattern of paths that should be included.
-* `-e, --exclude` - Regex pattern of paths that should be excluded.
+* `-i, --include` - Regex patterns of paths that should be included.
+* `-e, --exclude` - Regex patterns of paths that should be excluded.
 * `-o, --output` - Output file path. When not specified, output will be printed to `stdout`.
 * `-p, --prompt` - Prompt file path or URL. Allows specifying custom prompt which will be put at the beginning of the output. **If not specified, [default prompt](#default-prompt) will be used.**
 * `-r, --raw` - Removes prompt from the output.
@@ -53,8 +53,14 @@ sourceprompt /path/to/dir -o out.md -p my_prompt.txt
 # include only src/ files
 sourceprompt /path/to/dir -o out.md -i '^src'
 
+# include only C source files
+sourceprompt /path/to/dir -o out.md -i '.c$' -i '.h$'
+
 # exclude markdown files
 sourceprompt /path/to/dir -o out.md -e '\.md$'
+
+# exclude multiple types
+sourceprompt /path/to/dir -o out.md -e '.md$' -e '.txt$' -e 'LICENSE'
 ```
 
 ## Default prompt
