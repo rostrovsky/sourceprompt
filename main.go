@@ -34,16 +34,16 @@ Your analysis should be thorough, insightful, and aimed at enabling AI agents to
 `
 
 const (
-	version = "1.0.4"
+	version = "1.0.5"
 )
 
 var (
-	rFlag bool
-	vFlag bool
-	eFlag string
-	iFlag string
-	oFlag string
-	pFlag string
+	rFlag  bool
+	vFlag  bool
+	eFlags []string
+	iFlags []string
+	oFlag  string
+	pFlag  string
 )
 
 var rootCmd = &cobra.Command{
@@ -68,8 +68,8 @@ func init() {
 	rootCmd.Flags().BoolVarP(&vFlag, "verbose", "v", false, "Enable verbose output")
 	rootCmd.Flags().StringVarP(&oFlag, "output", "o", "", "Output file path")
 	rootCmd.Flags().StringVarP(&pFlag, "prompt", "p", "", "Prompt file path or URL")
-	rootCmd.Flags().StringVarP(&eFlag, "exclude", "e", "", "Regular expression of filename patterns to exclude")
-	rootCmd.Flags().StringVarP(&iFlag, "include", "i", "", "Regular expression of filename patterns to include")
+	rootCmd.Flags().StringSliceVarP(&eFlags, "exclude", "e", []string{}, "Regular expressions of filename patterns to exclude")
+	rootCmd.Flags().StringSliceVarP(&iFlags, "include", "i", []string{}, "Regular expressions of filename patterns to include")
 
 	rootCmd.AddCommand(versionCmd)
 
@@ -132,26 +132,26 @@ func run(cmd *cobra.Command, args []string) {
 		prefixToRemove = tempDir
 	}
 
-	var includeRe *regexp.Regexp
-	var excludeRe *regexp.Regexp
+	var includeRes []*regexp.Regexp
+	var excludeRes []*regexp.Regexp
 
-	if iFlag != "" {
-		re, err := regexp.Compile(iFlag)
+	for _, pattern := range iFlags {
+		re, err := regexp.Compile(pattern)
 		if err != nil {
-			u.LogErrAndExit(err)
+			u.LogErrAndExit(fmt.Errorf("invalid include pattern '%s': %v", pattern, err))
 		}
-		includeRe = re
+		includeRes = append(includeRes, re)
 	}
 
-	if eFlag != "" {
-		re, err := regexp.Compile(eFlag)
+	for _, pattern := range eFlags {
+		re, err := regexp.Compile(pattern)
 		if err != nil {
-			u.LogErrAndExit(err)
+			u.LogErrAndExit(fmt.Errorf("invalid exclude pattern '%s': %v", pattern, err))
 		}
-		excludeRe = re
+		excludeRes = append(excludeRes, re)
 	}
 
-	err := u.ProcessPath(path, prefixToRemove, includeRe, excludeRe, &sb)
+	err := u.ProcessPath(path, prefixToRemove, includeRes, excludeRes, &sb)
 	if err != nil {
 		u.LogErrAndExit(err)
 	}

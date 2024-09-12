@@ -133,7 +133,7 @@ func DetectLanguage(path string) string {
 	}
 }
 
-func ProcessPath(path string, prefixToRemove string, include *regexp.Regexp, exclude *regexp.Regexp, stringBuilder *strings.Builder) error {
+func ProcessPath(path string, prefixToRemove string, includes []*regexp.Regexp, excludes []*regexp.Regexp, stringBuilder *strings.Builder) error {
 	return filepath.Walk(path, func(filePath string, info os.FileInfo, err error) error {
 		slog.Debug("Processing", "path", filePath)
 
@@ -154,15 +154,24 @@ func ProcessPath(path string, prefixToRemove string, include *regexp.Regexp, exc
 		}
 
 		// skip files that don't match the include pattern
-		if include != nil && !include.MatchString(trimmedPath) {
-			slog.Debug("Skipped: doesn't match include pattern", "path", filePath, "trimmedPath", trimmedPath)
+		matchesInclude := len(includes) == 0 // If no include patterns, match all
+		for _, include := range includes {
+			if include.MatchString(trimmedPath) {
+				matchesInclude = true
+				break
+			}
+		}
+		if !matchesInclude {
+			slog.Debug("Skipped: doesn't match any include pattern", "path", filePath, "trimmedPath", trimmedPath)
 			return nil
 		}
 
 		// skip files that match the exclude pattern
-		if exclude != nil && exclude.MatchString(trimmedPath) {
-			slog.Debug("Skipped: matches exclude pattern", "path", filePath, "trimmedPath", trimmedPath)
-			return nil
+		for _, exclude := range excludes {
+			if exclude.MatchString(trimmedPath) {
+				slog.Debug("Skipped: matches exclude pattern", "path", filePath, "trimmedPath", trimmedPath)
+				return nil
+			}
 		}
 
 		// skip binary files
